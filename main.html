@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>이현준 포트폴리오</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #e0f2fe, #fef3c7);
+      color: #222;
+    }
+
+    header {
+      text-align: center;
+      padding: 70px 20px;
+      background: linear-gradient(135deg, #2563eb, #14b8a6);
+      color: white;
+    }
+
+    header h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 22px;
+      padding: 30px;
+      margin-bottom: 25px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .card h2 {
+      color: #2563eb;
+      margin-bottom: 15px;
+    }
+
+    .grade-box {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .grade {
+      flex: 1;
+      min-width: 180px;
+      background: #eff6ff;
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+      border-left: 6px solid #2563eb;
+    }
+
+    .grade strong {
+      display: block;
+      font-size: 30px;
+      color: #1d4ed8;
+    }
+
+    .button-box {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .btn {
+      text-decoration: none;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      transform: translateY(-4px);
+      opacity: 0.9;
+    }
+
+    .project-btn {
+      background: #f97316;
+    }
+
+    .github-btn {
+      background: #111827;
+    }
+
+    .school-btn {
+      background: #2563eb;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      background: #111827;
+      color: white;
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>이현준</h1>
+    <p>국립공주대학교 전자공학과</p>
+    <p>전자공학 · 자율주행 · 반도체</p>
+  </header>
+
+  <div class="container">
+
+    <div class="card">
+      <h2>소개</h2>
+      <p>
+        안녕하세요. 국립공주대학교 전자공학과 이현준입니다.
+        RC카 자율주행 프로젝트를 중심으로 전자공학 전공 지식과
+        프로그래밍 역량을 함께 키워가고 있습니다.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>학점</h2>
+      <div class="grade-box">
+        <div class="grade">
+          1학년 1학기
+          <strong>4.18</strong>
+        </div>
+        <div class="grade">
+          1학년 2학기
+          <strong>3.92</strong>
+        </div>
+        <div class="grade">
+          2학년 1학기
+          <strong>4.10</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>프로젝트</h2>
+      <h3>RC카 활용 자율주행 구현 프로젝트</h3>
+      <p>
+        RC카를 활용하여 센서 입력, 모터 제어, 주행 알고리즘을 구현하는
+        자율주행 프로젝트입니다.
+      </p>
+
+      <div class="button-box">
+        <a class="btn project-btn" href="https://cutedorami1.github.io/html_test_github/" target="_blank">
+          프로젝트 사이트 보기
+        </a>
+
+        <a class="btn github-btn" href="https://github.com/cutedorami1" target="_blank">
+          GitHub 보기
+        </a>
+
+        <a class="btn school-btn" href="https://www.kongju.ac.kr/KNU/index.do" target="_blank">
+          학교 홈페이지
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>추가 예정</h2>
+      <p>
+        이후 자격증, 추가 프로젝트, 기술 스택, 수상 경력 등을 계속 업데이트할 예정입니다.
+      </p>
+    </div>
+
+  </div>
+
+  <footer>
+    © 2026 LHJ Portfolio
+  </footer>
+
+</body>
+</html>
