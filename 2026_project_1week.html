@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>RC Car Controller</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  background: radial-gradient(circle, #1f2937, #020617);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  color: white;
+}
+
+.controller {
+  width: 900px;
+  height: 560px;
+  background: linear-gradient(145deg, #2a2a2a, #111);
+  border-radius: 90px 90px 45px 45px;
+  box-shadow:
+    inset 0 0 30px #000,
+    0 30px 60px rgba(0,0,0,0.7);
+  position: relative;
+  padding: 40px;
+}
+
+/* 상단 안테나 */
+.antenna {
+  position: absolute;
+  top: -90px;
+  left: 50%;
+  width: 26px;
+  height: 120px;
+  background: linear-gradient(#555, #111);
+  transform: translateX(-50%);
+  border-radius: 10px;
+}
+
+/* 제목 */
+.title {
+  text-align: center;
+  font-size: 34px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  margin-bottom: 25px;
+}
+
+.title span {
+  color: #ef4444;
+}
+
+/* 상태창 */
+.status-bar {
+  position: absolute;
+  top: 25px;
+  left: 310px;
+  width: 280px;
+  height: 42px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  font-size: 15px;
+}
+
+.led {
+  width: 12px;
+  height: 12px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #22c55e;
+}
+
+/* 좌우 조이스틱 영역 */
+.stick-box {
+  width: 280px;
+  height: 280px;
+  background: #181818;
+  border-radius: 35px;
+  position: absolute;
+  top: 120px;
+  box-shadow:
+    inset 0 0 20px #000,
+    0 0 0 4px #333;
+}
+
+.left-stick-box {
+  left: 60px;
+}
+
+.right-stick-box {
+  right: 60px;
+}
+
+.stick-ring {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #111 45%, #333 46%, #111 70%);
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  border: 5px solid #444;
+}
+
+.stick {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #aaa, #222 60%);
+  position: absolute;
+  top: 75px;
+  left: 75px;
+  border: 4px solid #777;
+  box-shadow: 0 8px 18px #000;
+}
+
+/* 조이스틱 축 */
+.stick-line-v,
+.stick-line-h {
+  position: absolute;
+  background: #888;
+  opacity: 0.5;
+}
+
+.stick-line-v {
+  width: 2px;
+  height: 150px;
+  top: 35px;
+  left: 109px;
+}
+
+.stick-line-h {
+  height: 2px;
+  width: 150px;
+  top: 109px;
+  left: 35px;
+}
+
+/* 가운데 전원부 */
+.center-panel {
+  position: absolute;
+  top: 110px;
+  left: 385px;
+  width: 130px;
+  height: 270px;
+  background: linear-gradient(#333, #111);
+  border-radius: 35px;
+  text-align: center;
+  padding-top: 25px;
+  box-shadow: inset 0 0 15px black;
+}
+
+.logo {
+  font-size: 36px;
+  font-weight: bold;
+}
+
+.logo span {
+  color: #ef4444;
+}
+
+.power-light {
+  width: 20px;
+  height: 20px;
+  background: #3b82f6;
+  margin: 25px auto;
+  border-radius: 50%;
+  box-shadow: 0 0 15px #3b82f6;
+}
+
+.power-btn {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #444, #111);
+  color: white;
+  font-size: 30px;
+  border: 3px solid #555;
+  cursor: pointer;
+}
+
+/* LCD */
+.lcd {
+  position: absolute;
+  bottom: 55px;
+  left: 300px;
+  width: 300px;
+  height: 120px;
+  background: linear-gradient(#c7e8ff, #8fb6cc);
+  color: #0f172a;
+  border: 12px solid #111;
+  border-radius: 18px;
+  padding: 15px;
+  font-family: monospace;
+  box-shadow: inset 0 0 12px #334155;
+}
+
+.lcd-top {
+  display: flex;
+  justify-content: space-between;
+}
+
+.speed {
+  font-size: 36px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* 실제 버튼 */
+.btn {
+  position: absolute;
+  width: 95px;
+  height: 45px;
+  background: linear-gradient(#333, #111);
+  color: white;
+  border: 2px solid #555;
+  border-radius: 12px;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #000;
+}
+
+.btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #000;
+}
+
+.aux1 { left: 80px; bottom: 125px; }
+.aux2 { left: 80px; bottom: 70px; }
+.aux3 { right: 80px; bottom: 125px; }
+.light { right: 80px; bottom: 70px; border-color: #3b82f6; }
+
+/* 하단 주행 버튼 */
+.drive-buttons {
+  position: absolute;
+  bottom: -90px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 18px;
+}
+
+.drive-buttons button {
+  width: 120px;
+  height: 60px;
+  border-radius: 14px;
+  border: 1px solid #444;
+  background: linear-gradient(#374151, #111827);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #000;
+}
+
+.drive-buttons button:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #000;
+}
+
+.stop {
+  color: #ef4444 !important;
+  font-weight: bold;
+}
+
+/* 토글 스위치 */
+.switch {
+  position: absolute;
+  width: 40px;
+  height: 75px;
+  background: #111;
+  border-radius: 25px;
+  border: 2px solid #555;
+}
+
+.switch::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 45px;
+  background: linear-gradient(#ddd, #555);
+  top: -18px;
+  left: 9px;
+  border-radius: 10px;
+  transform: rotate(-15deg);
+}
+
+.sw-left {
+  top: 70px;
+  left: 120px;
+}
+
+.sw-right {
+  top: 70px;
+  right: 120px;
+}
+
+/* 다이얼 */
+.knob {
+  position: absolute;
+  width: 65px;
+  height: 65px;
+  background: radial-gradient(circle, #555, #111);
+  border: 3px solid #444;
+  border-radius: 50%;
+  box-shadow: inset 0 0 10px black;
+}
+
+.knob::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 25px;
+  background: white;
+  top: 7px;
+  left: 29px;
+}
+
+.knob-left {
+  top: 75px;
+  left: 210px;
+}
+
+.knob-right {
+  top: 75px;
+  right: 210px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="controller">
+  <div class="antenna"></div>
+
+  <div class="title"><span>RC</span> CAR CONTROLLER</div>
+
+  <div class="status-bar">
+    <div class="led"></div>
+    <div id="connectStatus">연결됨</div>
+    <div>87%</div>
+  </div>
+
+  <div class="switch sw-left"></div>
+  <div class="switch sw-right"></div>
+
+  <div class="knob knob-left"></div>
+  <div class="knob knob-right"></div>
+
+  <div class="stick-box left-stick-box">
+    <div class="stick-ring">
+      <div class="stick-line-v"></div>
+      <div class="stick-line-h"></div>
+      <div class="stick"></div>
+    </div>
+  </div>
+
+  <div class="stick-box right-stick-box">
+    <div class="stick-ring">
+      <div class="stick-line-v"></div>
+      <div class="stick-line-h"></div>
+      <div class="stick"></div>
+    </div>
+  </div>
+
+  <div class="center-panel">
+    <div class="logo"><span>R</span>C</div>
+    <div class="power-light"></div>
+    <button class="power-btn" onclick="connectCar()">⏻</button>
+  </div>
+
+  <button class="btn aux1" onclick="sendCommand('aux1')">AUX 1</button>
+  <button class="btn aux2" onclick="sendCommand('aux2')">AUX 2</button>
+  <button class="btn aux3" onclick="sendCommand('aux3')">AUX 3</button>
+  <button class="btn light" onclick="sendCommand('light')">LIGHT</button>
+
+  <div class="lcd">
+    <div class="lcd-top">
+      <div>MODE 1</div>
+      <div>MANUAL</div>
+    </div>
+    <div class="speed" id="lcdCommand">STOP</div>
+    <div>BATTERY 87%</div>
+    <div>SIGNAL ▂▄▆█</div>
+  </div>
+
+  <div class="drive-buttons">
+    <button onclick="sendCommand('forward')">▲<br>전진</button>
+    <button onclick="sendCommand('backward')">▼<br>후진</button>
+    <button onclick="sendCommand('left')">↩<br>좌회전</button>
+    <button onclick="sendCommand('right')">↪<br>우회전</button>
+    <button class="stop" onclick="sendCommand('stop')">■<br>정지</button>
+    <button onclick="sendCommand('auto')">⟳<br>자동주행</button>
+  </div>
+</div>
+
+<script>
+let connected = true;
+
+function connectCar() {
+  connected = !connected;
+
+  if (connected) {
+    document.getElementById("connectStatus").innerText = "연결됨";
+    document.querySelector(".led").style.background = "#22c55e";
+    document.querySelector(".led").style.boxShadow = "0 0 10px #22c55e";
+  } else {
+    document.getElementById("connectStatus").innerText = "연결 안 됨";
+    document.querySelector(".led").style.background = "#ef4444";
+    document.querySelector(".led").style.boxShadow = "0 0 10px #ef4444";
+  }
+}
+
+function sendCommand(command) {
+  if (!connected) {
+    alert("RC Car가 연결되어 있지 않습니다.");
+    return;
+  }
+
+  document.getElementById("lcdCommand").innerText = command.toUpperCase();
+  console.log("전송 명령:", command);
+
+  /*
+  나중에 실제 RC카와 연결할 때 사용
+
+  fetch("http://192.168.4.1/command", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      command: command
+    })
+  });
+  */
+}
+</script>
+
+</body>
+</html>
