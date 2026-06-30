@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>알까기 AI 게임</title>
+<style>
+  body {
+    margin: 0;
+    background: #1f2933;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+
+  h1 { margin: 16px 0 6px; }
+
+  #info {
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+
+  canvas {
+    background: #c99a5b;
+    border: 12px solid #5b3418;
+    border-radius: 8px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    cursor: crosshair;
+  }
+
+  button {
+    margin-top: 12px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #38bdf8;
+    color: #111827;
+    font-weight: bold;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>알까기 게임</h1>
+<div id="info">검은돌 차례입니다. 내 돌을 드래그해서 조준하세요.</div>
+<canvas id="game" width="700" height="700"></canvas>
+<br />
+<button onclick="resetGame()">다시 시작</button>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const info = document.getElementById("info");
+
+const boardSize = 600;
+const margin = 50;
+const cell = boardSize / 10;
+const radius = 18;
+
+let stones = [];
+let currentTurn = "black";
+let selectedStone = null;
+let mouse = null;
+let isDragging = false;
+let moving = false;
+let hitSomething = false;
+let knockedOut = false;
+
+function resetGame() {
+  stones = [];
+  currentTurn = "black";
+  selectedStone = null;
+  moving = false;
+
+  // 검은돌 11개
+  const blackPositions = [
+    [2,7],[3,7],[4,7],[5,7],[6,7],
+    [3,8],[4,8],[5,8],[6,8],
+    [4,9],[5,9]
+  ];
+
+  // 흰돌 11개
+  const whitePositions = [
+    [4,0],[5,0],
+    [3,1],[4,1],[5,1],[6,1],
+    [2,2],[3,2],[4,2],[5,2],[6,2]
+  ];
+
+  for (let p of blackPositions) {
+    stones.push(createStone("black", p[0], p[1]));
+  }
+
+  for (let p of whitePositions) {
+    stones.push(createStone("white", p[0], p[1]));
+  }
+
+  info.textContent = "검은돌 차례입니다. 내 돌을 드래그해서 조준하세요.";
+}
+
+function createStone(color, col, row) {
+  return {
+    color,
+    x: margin + col * cell + cell / 2,
+    y: margin + row * cell + cell / 2,
+    vx: 0,
+    vy: 0,
+    alive: true
+  };
+}
+
+function drawBoard() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 바둑판 배경
+  ctx.fillStyle = "#d6a45f";
+  ctx.fillRect(margin, margin, boardSize, boardSize);
+
+  // 격자
+  ctx.strokeStyle = "#3b2412";
+  ctx.lineWidth = 2;
+
+  for (let i = 0; i <= 10; i++) {
+    ctx.beginPath();
+    ctx.moveTo(margin + i * cell, margin);
+    ctx.lineTo(margin + i * cell, margin + boardSize);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(margin, margin + i * cell);
+    ctx.lineTo(margin + boardSize, margin + i * cell);
+    ctx.stroke();
+  }
+
+  // 판 밖 영역 표시
+  ctx.strokeStyle = "#111";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(margin, margin, boardSize, boardSize);
+}
+
+function drawStones() {
+  for (let s of stones) {
+    if (!s.alive) continue;
+
+    let grad = ctx.createRadialGradient(
+      s.x - 6, s.y - 6, 4,
+      s.x, s.y, radius
+    );
+
+    if (s.color === "black") {
+      grad.addColorStop(0, "#666");
+      grad.addColorStop(1, "#000");
+    } else {
+      grad.addColorStop(0, "#fff");
+      grad.addColorStop(1, "#bbb");
+    }
+
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = "#222";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+function drawAimLine() {
+  if (isDragging && selectedStone && mouse) {
+    ctx.beginPath();
+    ctx.moveTo(selectedStone.x, selectedStone.y);
+    ctx.lineTo(mouse.x, mouse.y);
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(255,0,0,0.2)";
+    ctx.beginPath();
+    ctx.arc(selectedStone.x, selectedStone.y, radius + 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function gameLoop() {
+  drawBoard();
+  updatePhysics();
+  drawStones();
+  drawAimLine();
+  checkGameOver();
+
+  requestAnimationFrame(gameLoop);
+}
+
+function updatePhysics() {
+  if (!moving) return;
+
+  let anyMoving = false;
+
+  for (let s of stones) {
+    if (!s.alive) continue;
+
+    s.x += s.vx;
+    s.y += s.vy;
+
+    s.vx *= 0.97;
+    s.vy *= 0.97;
+
+    if (Math.abs(s.vx) < 0.05) s.vx = 0;
+    if (Math.abs(s.vy) < 0.05) s.vy = 0;
+
+    if (Math.abs(s.vx) > 0 || Math.abs(s.vy) > 0) {
+      anyMoving = true;
+    }
+
+    // 판 밖으로 떨어짐
+    if (
+      s.x < margin - radius ||
+      s.x > margin + boardSize + radius ||
+      s.y < margin - radius ||
+      s.y > margin + boardSize + radius
+    ) {
+      s.alive = false;
+      knockedOut = true;
+    }
+  }
+
+  handleCollisions();
+
+  if (!anyMoving) {
+    moving = false;
+    finishTurn();
+  }
+}
+
+function handleCollisions() {
+  for (let i = 0; i < stones.length; i++) {
+    for (let j = i + 1; j < stones.length; j++) {
+      const a = stones[i];
+      const b = stones[j];
+
+      if (!a.alive || !b.alive) continue;
+
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < radius * 2) {
+        hitSomething = true;
+
+        const angle = Math.atan2(dy, dx);
+        const overlap = radius * 2 - dist;
+
+        a.x -= Math.cos(angle) * overlap / 2;
+        a.y -= Math.sin(angle) * overlap / 2;
+        b.x += Math.cos(angle) * overlap / 2;
+        b.y += Math.sin(angle) * overlap / 2;
+
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        const p = 2 * (a.vx * nx + a.vy * ny - b.vx * nx - b.vy * ny) / 2;
+
+        a.vx -= p * nx;
+        a.vy -= p * ny;
+        b.vx += p * nx;
+        b.vy += p * ny;
+      }
+    }
+  }
+}
+
+function finishTurn() {
+  if (knockedOut) {
+    info.textContent =
+      currentTurn === "black"
+      ? "상대 돌을 떨어뜨렸습니다! 검은돌 한 번 더!"
+      : "AI가 돌을 떨어뜨렸습니다. AI 한 번 더!";
+  } else {
+    currentTurn = currentTurn === "black" ? "white" : "black";
+    info.textContent =
+      currentTurn === "black"
+      ? "검은돌 차례입니다."
+      : "흰돌 AI 차례입니다.";
+  }
+
+  hitSomething = false;
+  knockedOut = false;
+
+  if (currentTurn === "white") {
+    setTimeout(aiTurn, 700);
+  }
+}
+
+canvas.addEventListener("mousedown", e => {
+  if (currentTurn !== "black" || moving) return;
+
+  const pos = getMousePos(e);
+
+  for (let s of stones) {
+    if (!s.alive || s.color !== "black") continue;
+
+    const d = distance(pos.x, pos.y, s.x, s.y);
+
+    if (d <= radius) {
+      selectedStone = s;
+      isDragging = true;
+      mouse = pos;
+      break;
+    }
+  }
+});
+
+canvas.addEventListener("mousemove", e => {
+  if (isDragging) {
+    mouse = getMousePos(e);
+  }
+});
+
+canvas.addEventListener("mouseup", e => {
+  if (!isDragging || !selectedStone) return;
+
+  mouse = getMousePos(e);
+
+  const dx = selectedStone.x - mouse.x;
+  const dy = selectedStone.y - mouse.y;
+
+  selectedStone.vx = dx * 0.12;
+  selectedStone.vy = dy * 0.12;
+
+  moving = true;
+  hitSomething = false;
+  knockedOut = false;
+
+  isDragging = false;
+  selectedStone = null;
+});
+
+function aiTurn() {
+  if (moving || currentTurn !== "white") return;
+
+  const whiteStones = stones.filter(s => s.alive && s.color === "white");
+  const blackStones = stones.filter(s => s.alive && s.color === "black");
+
+  if (whiteStones.length === 0 || blackStones.length === 0) return;
+
+  let attacker = whiteStones[Math.floor(Math.random() * whiteStones.length)];
+
+  let target = blackStones[0];
+  let minDist = Infinity;
+
+  for (let b of blackStones) {
+    let d = distance(attacker.x, attacker.y, b.x, b.y);
+    if (d < minDist) {
+      minDist = d;
+      target = b;
+    }
+  }
+
+  const dx = target.x - attacker.x;
+  const dy = target.y - attacker.y;
+  const len = Math.sqrt(dx * dx + dy * dy);
+
+  const power = 8 + Math.random() * 4;
+
+  attacker.vx = dx / len * power;
+  attacker.vy = dy / len * power;
+
+  moving = true;
+  hitSomething = false;
+  knockedOut = false;
+  info.textContent = "AI가 공격했습니다!";
+}
+
+function getMousePos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top
+  };
+}
+
+function distance(x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function checkGameOver() {
+  const blackAlive = stones.filter(s => s.alive && s.color === "black").length;
+  const whiteAlive = stones.filter(s => s.alive && s.color === "white").length;
+
+  if (blackAlive === 0) {
+    info.textContent = "게임 종료! AI 승리!";
+    moving = false;
+  }
+
+  if (whiteAlive === 0) {
+    info.textContent = "게임 종료! 사용자 승리!";
+    moving = false;
+  }
+}
+
+resetGame();
+gameLoop();
+</script>
+
+</body>
+</html>
